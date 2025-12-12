@@ -1,44 +1,67 @@
 const jwt = require('jsonwebtoken');
 
-// Secret key para JWT (debe coincidir con el .env)
-const SECRET_KEY = process.env.JWT_SECRET || 'aymigatitomiaumiau';
+const SECRET_KEY = process.env.JWT_SECRET || 'tu_clave_secreta_super_segura';
 
-// Middleware para verificar el token JWT
-const verifyToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Bearer <token>
+// ========================================
+// MIDDLEWARE: Verificar Token JWT
+// ========================================
+function verifyToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader) {
+        return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+
+    // Formato esperado: "Bearer TOKEN"
+    const token = authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(403).json({ error: 'Token no proporcionado' });
+        return res.status(401).json({ error: 'Token no proporcionado' });
     }
 
     try {
         const decoded = jwt.verify(token, SECRET_KEY);
-        req.user = decoded; // Agregar datos del usuario a la request
+        req.user = decoded; // Agregar usuario decodificado al request
         next();
     } catch (error) {
         return res.status(401).json({ error: 'Token inválido o expirado' });
     }
-};
+}
 
-// Middleware para verificar rol de administrador
-const isAdmin = (req, res, next) => {
+// ========================================
+// MIDDLEWARE: Verificar que sea Admin
+// ========================================
+function isAdmin(req, res, next) {
+    // req.user fue seteado por verifyToken
+    if (!req.user) {
+        return res.status(401).json({ error: 'Usuario no autenticado' });
+    }
+
     if (req.user.rol !== 'Admin') {
-        return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador' });
+        return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de Administrador' });
     }
-    next();
-};
 
-// Middleware para verificar rol de vendedor
-const isVendedor = (req, res, next) => {
-    if (req.user.rol !== 'Vendedor') {
-        return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de vendedor' });
-    }
     next();
-};
+}
+
+// ========================================
+// MIDDLEWARE: Verificar que sea Empleado
+// ========================================
+function isEmpleado(req, res, next) {
+    if (!req.user) {
+        return res.status(401).json({ error: 'Usuario no autenticado' });
+    }
+
+    if (req.user.rol !== 'Empleado') {
+        return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de Empleado' });
+    }
+
+    next();
+}
 
 module.exports = {
     SECRET_KEY,
     verifyToken,
     isAdmin,
-    isVendedor
+    isEmpleado
 };

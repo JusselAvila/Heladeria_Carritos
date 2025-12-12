@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Heladería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            background: #f3f4f6;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-left: 3px solid #60a5fa;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: white;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .section-content.hidden {
+            display: none;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-icon.blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stat-icon.green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .stat-icon.amber {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stat-icon.red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f9fafb;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        .table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 0.5rem;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: #374151;
+        }
+
+        .credentials-preview {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 2px solid #86efac;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .credentials-preview h4 {
+            color: #166534;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .credential-item {
+            background: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .credential-item strong {
+            color: #065f46;
+        }
+
+        .credential-item span {
+            font-family: 'Courier New', monospace;
+            color: #047857;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .help-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-ice-cream"></i>
+                    <span>Heladería</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" class="active" data-section="dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a></li>
+                    <li><a href="#" data-section="empleados">
+                            <i class="fas fa-users"></i>
+                            <span>Empleados</span>
+                        </a></li>
+                    <li><a href="#" data-section="productos">
+                            <i class="fas fa-box"></i>
+                            <span>Productos</span>
+                        </a></li>
+                    <li><a href="#" data-section="carritos">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Carritos</span>
+                        </a></li>
+                    <li><a href="#" data-section="ventas">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Ventas</span>
+                        </a></li>
+                    <li><a href="#" data-section="reportes">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Reportes</span>
+                        </a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 id="pageTitle" class="text-xl font-semibold text-gray-900">Dashboard</h2>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div>
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrador</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Salir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Wrapper -->
+            <div class="content-wrapper">
+                <!-- Dashboard Section -->
+                <div id="section-dashboard" class="section-content">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-label">Carritos Activos</div>
+                            <div class="stat-value" id="statCarritos">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-label">Ventas Hoy</div>
+                            <div class="stat-value" id="statVentas">Bs. 0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon amber">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-label">Productos</div>
+                            <div class="stat-value" id="statProductos">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-label">Empleados</div>
+                            <div class="stat-value" id="statEmpleados">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Ventas Recientes</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="ventasRecientes">
+                                    <p class="text-center text-gray-500">Cargando...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Carritos en Ruta</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="carritosEnRuta">
+                                    <p class="text-center text-gray-500">Cargando...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empleados Section -->
+                <div id="section-empleados" class="section-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Gestión de Empleados</h3>
+                            <button class="btn btn-primary" id="btnNuevoEmpleado">
+                                <i class="fas fa-plus"></i> Nuevo Empleado
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Apellido</th>
+                                            <th>CI</th>
+                                            <th>Cargo</th>
+                                            <th>Teléfono</th>
+                                            <th>Usuario</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaEmpleados">
+                                        <tr>
+                                            <td colspan="9" class="text-center">Cargando empleados...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos Section -->
+                <div id="section-productos" class="section-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Gestión de Productos</h3>
+                            <button class="btn btn-primary" id="btnNuevoProducto">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaProductos">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Cargando productos...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carritos Section -->
+                <div id="section-carritos" class="section-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Gestión de Carritos</h3>
+                            <button class="btn btn-primary" id="btnNuevoCarrito">
+                                <i class="fas fa-plus"></i> Nuevo Carrito
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Código</th>
+                                            <th>Ubicación</th>
+                                            <th>Estado</th>
+                                            <th>Empleado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaCarritos">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Cargando carritos...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ventas Section -->
+                <div id="section-ventas" class="section-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Historial de Ventas</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Fecha</th>
+                                            <th>Carrito</th>
+                                            <th>Cliente</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaVentas">
+                                        <tr>
+                                            <td colspan="7" class="text-center">Cargando ventas...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reportes Section -->
+                <div id="section-reportes" class="section-content hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Reportes y Estadísticas</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-gray-600">Sección de reportes en desarrollo...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Empleado -->
+    <div id="modalEmpleado" class="modal-overlay">
+        <div class="modal" style="width: 650px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Nuevo Empleado</h3>
+                <button class="modal-close" onclick="closeModal('modalEmpleado')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formEmpleado">
+                    <!-- Nombre y Apellido -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" class="form-input" id="empNombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Apellido *</label>
+                            <input type="text" class="form-input" id="empApellido" required>
+                        </div>
+                    </div>
+
+                    <!-- Documento de Identidad -->
+                    <div class="form-group">
+                        <label class="form-label">Documento de Identidad (CI) *</label>
+                        <input type="text" class="form-input" id="empDocumento" placeholder="Ej: 7867511"
+                            pattern="[0-9]+" required>
+                        <small class="help-text">
+                            <i class="fas fa-info-circle"></i>
+                            Solo números. Se generará: <strong>usuario = nombreapellido</strong> | <strong>contraseña =
+                                apellido.documento</strong>
+                        </small>
+                    </div>
+
+                    <!-- Cargo y Teléfono -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Cargo *</label>
+                            <select class="form-select" id="empCargo" required>
+                                <option value="">Seleccionar...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-input" id="empTelefono" placeholder="Ej: 70123456">
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Vista previa de credenciales -->
+                <div id="credencialesPreview" class="credentials-preview" style="display: none;">
+                    <h4>
+                        <i class="fas fa-key"></i>
+                        Credenciales que se generarán:
+                    </h4>
+                    <div class="credential-item">
+                        <strong>Usuario:</strong>
+                        <span id="previewUsername">-</span>
+                    </div>
+                    <div class="credential-item">
+                        <strong>Contraseña:</strong>
+                        <span id="previewPassword">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEmpleado')">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarEmpleado">
+                    <i class="fas fa-save"></i>
+                    Guardar Empleado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>
